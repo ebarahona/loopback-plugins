@@ -18,15 +18,16 @@ LoopBack 4 has the right primitives (IoC, DI, components, lifecycle observers) b
 | Package | Latest | State | Repo |
 |---|---|---|---|
 | `@ebarahona/loopback-connector-mongodb` | `1.0.0` | Published | https://github.com/ebarahona/loopback-connector-mongodb |
-| `@ebarahona/loopback-transport-core` | `1.0.0` ready | Built, awaiting first publish | https://github.com/ebarahona/loopback-transport-core |
+| `@ebarahona/loopback-transport-core` | `1.1.0` ready | v1.0 published; v1.1 ready | https://github.com/ebarahona/loopback-transport-core |
 | `@ebarahona/loopback-graphql` | — | Planned | — |
 
 ## Near-term (next 1–2 releases per plugin)
 
 ### `loopback-transport-core`
-- Publish `v1.0.0` to npm (workflows already wired, NPM_TOKEN already set). v1.0 will include the CloudEvents serializer below.
-- ✅ **CloudEvents serializer** (`CloudEventsSerializer` / `CloudEventsDeserializer`, `@experimental`). Built and tested, awaiting first publish. Wraps payloads in the CNCF CloudEvents 1.0 envelope so transport-core apps interoperate with Knative, Dapr, Azure Event Grid, AWS EventBridge, NATS JetStream out of the box. Peer-dep on `cloudevents` `>=10.0.0 <11.0.0`. 7 unit tests cover structured-mode + binary-mode roundtrips, default and custom id generators, type-prefix composition, source attribute, and error wrapping.
-- **First concrete transport adapter** — likely Kafka (`kafkajs`) or NATS, both with native CloudEvents support. Uses the `new-transport-adapter` skill we authored.
+- Publish `v1.1.0`. Adds the `HandlerDiscoverer` extension point (`HandlerDiscoverer`, `DiscoveredHandler`, `HANDLER_DISCOVERER_TAG`) so plugins contribute custom decorator vocabularies, with built-in `MessageHandlerDiscoverer` and `EventHandlerDiscoverer` as defaults. Adds `DiscoveryService` (`TransportBindings.DISCOVERY_SERVICE`, `RegisteredHandler`) for universal read-only enumeration of every discovered handler.
+- `DiscoveryService` is NestJS-parity: the same shape as NestJS's `DiscoveryService`, so existing patterns port over.
+- First concrete consumer of `DiscoveryService`: either the upcoming Kafka / NATS adapter (validates the extension surface end to end) or an OpenTelemetry tracing plugin sketch (validates the cross-cutting consumer side).
+- First concrete transport adapter, likely Kafka (`kafkajs`) or NATS, both with native CloudEvents support. Uses the `new-transport-adapter` skill we authored.
 - Multi-tenant routing example documented in README.
 
 ### `loopback-connector-mongodb`
@@ -38,6 +39,7 @@ LoopBack 4 has the right primitives (IoC, DI, components, lifecycle observers) b
 
 ### `loopback-transport-core`
 - Concrete adapters: `loopback-transport-kafka`, `loopback-transport-amqp`, `loopback-transport-mqtt`, `loopback-transport-nats`, `loopback-transport-redis`. Each as a separate sibling package, peer-dep on the broker library.
+- Open-source plugin examples for the `HandlerDiscoverer` model: `loopback-transport-grpc` contributing `@grpcRoute`, and a `loopback-connector-mongodb` follow-on contributing `@changeStream` + `ChangeStreamServer` (optional, peer-dep on transport-core v1.1).
 - Subscription support over WebSocket / SSE for browser clients.
 - Schema registry integration helpers (Confluent, Azure Schema Registry) on top of the CloudEvents `dataschema` attribute.
 - W3C Trace Context / OpenTelemetry integration via CloudEvents extensions.
@@ -113,3 +115,5 @@ Each plugin has its own `CONTRIBUTING.md`. The workflow is uniform across the po
 - **2026-05-14** — Built `loopback-transport-core@1.0.0` to publish-ready state. Decided CloudEvents serializer is in-scope for transport-core; GraphQL is out-of-scope (separate sibling plugin to come).
 - **2026-05-14** — Adopted user-level canonical skills at `~/.claude/skills/`. Per-plugin `.claude/skills/` syncs from canonical; domain-specific reviews subsumed by the `lb4-plugin-review` template with `{SKILL_DOMAIN}`.
 - **2026-05-14** — `loopback-transport-core` ships CloudEvents 1.0 envelope support via `CloudEventsSerializer` / `CloudEventsDeserializer`, marked `@experimental`. Peer-dep on `cloudevents` `>=10.0.0 <11.0.0`. Built but not yet published; will land in v1.0.
+- **2026-05-14**: `loopback-transport-core@1.1.0` ships the `HandlerDiscoverer` extension point (`HandlerDiscoverer`, `DiscoveredHandler`, `HANDLER_DISCOVERER_TAG`) and `DiscoveryService` (`TransportBindings.DISCOVERY_SERVICE`, `RegisteredHandler`) for NestJS-parity universal discovery. All additions `@public`, no `@experimental`. Additive and backward compatible with v1.0.
+- **2026-05-14**: Considered a transport-core-specific `HandlerWrapper` extension point for cross-cutting wrapping. Backed out: LB4's existing `@globalInterceptor` already covers the use case, and a parallel mechanism would fragment the interception story. The README's "Cross-cutting concerns" section documents the LB4-native approach.

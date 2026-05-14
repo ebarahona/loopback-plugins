@@ -9,7 +9,7 @@ mid-term plans, and longer-term vision.
 ## Plugins
 
 - [`@ebarahona/loopback-connector-mongodb`](https://github.com/ebarahona/loopback-connector-mongodb) — published, v1.0.0
-- [`@ebarahona/loopback-transport-core`](https://github.com/ebarahona/loopback-transport-core) — built, awaiting first publish
+- [`@ebarahona/loopback-transport-core`](https://github.com/ebarahona/loopback-transport-core) — published `v1.0.0`, `v1.1.0` ready (pluggable `HandlerDiscoverer` / `DiscoveryService` extension points)
 - `@ebarahona/loopback-graphql` — planned (fills the unmaintained `@loopback/graphql` gap)
 
 Each plugin is enterprise-grade by default: full CI matrix, release-please
