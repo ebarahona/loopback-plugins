@@ -24,8 +24,8 @@ LoopBack 4 has the right primitives (IoC, DI, components, lifecycle observers) b
 ## Near-term (next 1–2 releases per plugin)
 
 ### `loopback-transport-core`
-- Publish `v1.0.0` to npm (workflows already wired, NPM_TOKEN already set).
-- **CloudEvents serializer** (`CloudEventsSerializer` / `CloudEventsDeserializer`, `@experimental`). Wraps payloads in the CNCF CloudEvents 1.0 envelope so transport-core apps interoperate with Knative, Dapr, Azure Event Grid, AWS EventBridge, NATS JetStream out of the box. Slots into the existing `Serializer` / `Deserializer` interface. Peer-dep on `cloudevents` npm package.
+- Publish `v1.0.0` to npm (workflows already wired, NPM_TOKEN already set). v1.0 will include the CloudEvents serializer below.
+- ✅ **CloudEvents serializer** (`CloudEventsSerializer` / `CloudEventsDeserializer`, `@experimental`). Built and tested, awaiting first publish. Wraps payloads in the CNCF CloudEvents 1.0 envelope so transport-core apps interoperate with Knative, Dapr, Azure Event Grid, AWS EventBridge, NATS JetStream out of the box. Peer-dep on `cloudevents` `>=10.0.0 <11.0.0`. 7 unit tests cover structured-mode + binary-mode roundtrips, default and custom id generators, type-prefix composition, source attribute, and error wrapping.
 - **First concrete transport adapter** — likely Kafka (`kafkajs`) or NATS, both with native CloudEvents support. Uses the `new-transport-adapter` skill we authored.
 - Multi-tenant routing example documented in README.
 
@@ -112,3 +112,4 @@ Each plugin has its own `CONTRIBUTING.md`. The workflow is uniform across the po
 - **2026-05-13** — Published `loopback-connector-mongodb@1.0.0`. First package in the portfolio.
 - **2026-05-14** — Built `loopback-transport-core@1.0.0` to publish-ready state. Decided CloudEvents serializer is in-scope for transport-core; GraphQL is out-of-scope (separate sibling plugin to come).
 - **2026-05-14** — Adopted user-level canonical skills at `~/.claude/skills/`. Per-plugin `.claude/skills/` syncs from canonical; domain-specific reviews subsumed by the `lb4-plugin-review` template with `{SKILL_DOMAIN}`.
+- **2026-05-14** — `loopback-transport-core` ships CloudEvents 1.0 envelope support via `CloudEventsSerializer` / `CloudEventsDeserializer`, marked `@experimental`. Peer-dep on `cloudevents` `>=10.0.0 <11.0.0`. Built but not yet published; will land in v1.0.
