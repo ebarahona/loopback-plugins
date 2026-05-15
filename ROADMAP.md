@@ -1,6 +1,6 @@
 # `@ebarahona/loopback-*` Plugin Roadmap
 
-Last updated: 2026-05-14
+Last updated: 2026-05-15
 
 This document tracks the modern LoopBack 4 plugin ecosystem published under the `@ebarahona/loopback-*` npm scope. Each package is enterprise-grade by default (CI, release automation, typed errors, stability tags, docs) and composable. Pick the pieces you need.
 
@@ -17,8 +17,9 @@ LoopBack 4 has the right primitives (IoC, DI, components, lifecycle observers) b
 
 | Package | Latest | State | Repo |
 |---|---|---|---|
-| `@ebarahona/loopback-connector-mongodb` | `1.0.0` | Published | https://github.com/ebarahona/loopback-connector-mongodb |
-| `@ebarahona/loopback-transport-core` | `1.1.0` ready | v1.0 published; v1.1 ready | https://github.com/ebarahona/loopback-transport-core |
+| `@ebarahona/loopback-transport-core` | `1.2.0` | Published | https://github.com/ebarahona/loopback-transport-core |
+| `@ebarahona/loopback-connector-mongodb` | `1.1.1` | Published | https://github.com/ebarahona/loopback-connector-mongodb |
+| `@ebarahona/loopback-openapi-v3` | `1.1.0` | Published | https://github.com/ebarahona/loopback-openapi-v3 |
 | `@ebarahona/loopback-graphql` | — | Planned | — |
 
 ## Near-term (next 1–2 releases per plugin)
@@ -34,6 +35,13 @@ LoopBack 4 has the right primitives (IoC, DI, components, lifecycle observers) b
 - Tune the leak-detection thresholds and benchmark baselines listed in `HELP_WANTED.md`.
 - Publish a baseline `bench/baseline.json` so CI can detect regressions.
 - First-class Atlas Vector Search index management methods on `MongoService` (`createSearchIndex`, `listSearchIndexes`, `updateSearchIndex`, `dropSearchIndex`). Currently reachable via `getCollection().createSearchIndex()` as documented.
+- Resolve the flaky `provides resume tokens` change-stream test (currently skipped on CI via `it.skipIf(process.env.CI)`); needs a robust cursor-ready signal in place of the timed warmup.
+
+### `loopback-openapi-v3`
+- Conformance test corpus against the published OAS 3.1 / 3.2 JSON Schemas under `src/__tests__/conformance/`.
+- Performance baseline for large specs (1000+ paths) so CI can flag regressions.
+- Round-trip fidelity tests: 3.0 -> 3.1 -> 3.0 should preserve every non-stripped field.
+- A `transformOpenApiClient` reverse helper that downgrades a 3.1+ spec to a 3.0 client view for legacy consumers.
 
 ## Mid-term (next 3–6 months)
 
@@ -117,3 +125,8 @@ Each plugin has its own `CONTRIBUTING.md`. The workflow is uniform across the po
 - **2026-05-14** — `loopback-transport-core` ships CloudEvents 1.0 envelope support via `CloudEventsSerializer` / `CloudEventsDeserializer`, marked `@experimental`. Peer-dep on `cloudevents` `>=10.0.0 <11.0.0`. Built but not yet published; will land in v1.0.
 - **2026-05-14**: `loopback-transport-core@1.1.0` ships the `HandlerDiscoverer` extension point (`HandlerDiscoverer`, `DiscoveredHandler`, `HANDLER_DISCOVERER_TAG`) and `DiscoveryService` (`TransportBindings.DISCOVERY_SERVICE`, `RegisteredHandler`) for NestJS-parity universal discovery. All additions `@public`, no `@experimental`. Additive and backward compatible with v1.0.
 - **2026-05-14**: Considered a transport-core-specific `HandlerWrapper` extension point for cross-cutting wrapping. Backed out: LB4's existing `@globalInterceptor` already covers the use case, and a parallel mechanism would fragment the interception story. The README's "Cross-cutting concerns" section documents the LB4-native approach.
+- **2026-05-15**: Published `loopback-transport-core@1.2.0`. Adds boot-time validation guards in `HandlerRegistry.bindToServers` so misconfigured transports fail loud at boot instead of silently dropping events: throws on handlers referencing unknown transport names and on duplicate `TransportServer` `NAME` tags; debug-logs on unaddressable servers and on handlers with no servers bound. New `TransportBindings.STRICT_BINDING` lets consumers opt out of the throw.
+- **2026-05-15**: Published `loopback-connector-mongodb@1.1.0` adding `@changeStream` decorator + `ChangeStreamDiscoverer` + `MongoChangeStreamServer` + `MongoChangeStreamComponent`. Opt-in peer-dep on `@ebarahona/loopback-transport-core@>=1.2.0` (marked `peerDependenciesMeta.optional: true`) so consumers who don't use the change-stream transport see no install warning. All new exports `@experimental`.
+- **2026-05-15**: Published `loopback-connector-mongodb@1.1.1` consolidating pre-release polish (changelog, typos config, lychee config, docs, pickWatchOptions JSDoc) into one batched patch. First release via OIDC Trusted Publishing with signed provenance.
+- **2026-05-15**: Adopted npm OIDC Trusted Publishing across the portfolio. `loopback-connector-mongodb` and `loopback-openapi-v3` configured; `loopback-transport-core` still on the `NPM_TOKEN` fallback pending the npmjs.com UI step. No more token rotation; every OIDC release ships with a signed sigstore provenance statement.
+- **2026-05-15**: Brought `loopback-openapi-v3` to enterprise parity with the rest of the portfolio. v1.1.0 adds: typed error hierarchy (`OpenApiVersionError` base + `OpenApiVersionConfigError`, `OpenApiTransformError`, `OpenApiDowngradeError`); `@public` stability tags across every exported symbol; the 12 enterprise CI workflows plus `.githooks/` + `scripts/install-hooks.sh`; vitest/typedoc/lychee/editorconfig configs; sync of the canonical `.claude/skills/` set plus a new `new-openapi-feature` scaffold skill; docs aligned to the portfolio voice. v1.1.0 was published manually because the OIDC Trusted Publisher entry was not yet propagated at merge time; future releases publish automatically.
